@@ -1,31 +1,73 @@
-# Description
+# OCaml Trade Tax Calculator
 
-This project calculates the tax of each trade in a list.
+This OCaml project implements a sophisticated **capital gains tax calculator** for stock trading operations. It simulates real-world tax calculation rules by tracking stock purchases, sales, and applying tax only on net profits above a specified threshold.
 
-## Input:
+## Overview
 
-```ocaml
-let input = [
-    Buy  { unit_cost = 10.; quantity = 100 };
-    Sell { unit_cost = 15.; quantity = 50  };
-    Sell { unit_cost = 15.; quantity = 50  };
-]
-(* : trade list *)
-```
+The calculator implements key financial concepts:
+- **Weighted Average Cost Basis**: Maintains the average cost of held stocks across multiple purchases
+- **Loss Offsetting**: Accumulates losses to offset future gains (tax loss harvesting)
+- **Threshold-based Taxation**: Only applies tax to transactions above a minimum amount
+- **Stateful Tracking**: Remembers portfolio state across multiple operations
 
-Where trade is defined as follows:
+## Core Functionality
+
+### Data Types
 
 ```ocaml
 type data = { unit_cost : float ; quantity : int }
 type trade = Buy of data | Sell of data
 ```
 
-## Output:
+### Tax Calculation Rules
 
+1. **Buy Operations**: No tax applied, updates weighted average cost
+2. **Sell Operations**: Tax calculated based on:
+   - Profit/loss compared to weighted average cost
+   - Transaction amount must exceed threshold (default: 20,000)
+   - Net profit after offsetting accumulated losses
+   - Tax rate applied to net profit (default: 20%)
+
+### Example Workflow
+
+**Input:**
 ```ocaml
-let output = [None; None; Some 1000.]
-(* : float option list *);
+let input = [
+    Buy  { unit_cost = 10.; quantity = 100 };  (* Purchase 100 shares at $10 *)
+    Sell { unit_cost = 15.; quantity = 50  };  (* Sell 50 shares at $15 *)
+    Sell { unit_cost = 15.; quantity = 50  };  (* Sell remaining 50 shares at $15 *)
+]
 ```
+
+**Output:**
+```ocaml
+let output = [None; None; None]
+(* No tax because transaction amounts are below threshold *)
+```
+
+**Large Transaction Example:**
+```ocaml
+let input = [
+    Buy  { unit_cost = 10.; quantity = 10000 };  (* $100,000 purchase *)
+    Sell { unit_cost = 20.; quantity = 5000  };  (* $100,000 sale, $50,000 profit *)
+]
+(* Output: [None; Some 10000.] - 20% tax on $50,000 profit *)
+```
+
+## Project Structure
+
+- **`lib/tax.ml`** - Core tax calculation logic and state management
+- **`lib/tax.mli`** - Public interface definitions
+- **`bin/main.ml`** - Example usage with sample trading scenarios
+- **`test/`** - Comprehensive test suite covering various edge cases
+
+## Key Features
+
+- ✅ **Stateful Calculation**: Maintains portfolio state across operations
+- ✅ **Loss Accumulation**: Tracks losses to offset future gains
+- ✅ **Configurable Parameters**: Customizable tax rate and threshold
+- ✅ **Error Handling**: Prevents overselling stocks
+- ✅ **Comprehensive Testing**: Multiple test scenarios validate correctness
 
 ---
 
